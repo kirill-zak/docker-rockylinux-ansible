@@ -44,7 +44,7 @@ jobs:
 
       matrix:
         version_branch: [9]
-        version_minor_release: [0, 1, 2, 3, 4, 5, 6]
+        version_minor_release: [0, 1, 2, 3, 4, 5, 6, 7]
 
     steps:
       - name: Checkout out the codebase
@@ -149,7 +149,7 @@ jobs:
         platform: 
           - linux/amd64,linux/arm64/v8,linux/s390x
         version_branch: [9]
-        version_minor_release: [0, 1, 2, 3, 4, 5, 6]
+        version_minor_release: [0, 1, 2, 3, 4, 5, 6, 7]
         include:
           - version_branch: 9
             version_minor_release: 0
@@ -268,7 +268,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          build-args: VERSION=9.6
+          build-args: VERSION=9.7
           context: ./
           file: ./rocky9/Dockerfile
           platforms: linux/amd64,linux/arm64/v8,linux/ppc64le,linux/s390x
