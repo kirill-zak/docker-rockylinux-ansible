@@ -54,3 +54,27 @@ jobs:
 
       - name: Verify Ansible is accessible in the built image
         run: podman exec --tty test-container env TERM=xterm ansible --version
+
+  test-10:
+    name: Test 10 version
+    runs-on: ubuntu-latest
+
+    strategy: 
+      fail-fast: false
+
+      matrix:
+        version_branch: [10]
+        version_minor_release: [0]
+
+    steps:
+      - name: Checkout out the codebase
+        uses: actions/checkout@v6
+
+      - name: Test building image
+        run: podman build -t docker-rockylinux-ansible:${{ matrix.version_branch }}.${{ matrix.version_minor_release }} ./rocky${{ matrix.version_branch }}/. --build-arg VERSION=${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
+      
+      - name: Run the built image
+        run: podman run --name test-container --detach --privileged --volume /sys/fs/cgroup:/sys/fs/cgroup:ro docker-rockylinux-ansible:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
+
+      - name: Verify Ansible is accessible in the built image
+        run: podman exec --tty test-container env TERM=xterm ansible --version
