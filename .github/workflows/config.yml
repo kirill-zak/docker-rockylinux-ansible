@@ -1,0 +1,67 @@
+---
+name: Configuration
+
+on:
+  workflow_call:
+    outputs:
+      versions:
+        description: JSON array of supported versions
+        value: ${{ jobs.config.outputs.versions }}
+      platforms:
+        description: JSON array of supported platforms
+        value: ${{ jobs.config.outputs.platforms }}
+      version_platforms:
+        description: JSON object mapping each version to its build platforms
+        value: ${{ jobs.config.outputs.version_platforms }}
+      build_matrix:
+        description: JSON array of version/platform combinations for build checks
+        value: ${{ jobs.config.outputs.build_matrix }}
+      latest_version:
+        description: Version that carries the latest tag
+        value: ${{ jobs.config.outputs.latest_version }}
+
+permissions:
+  contents: read
+
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.values.outputs.versions }}
+      platforms: ${{ steps.values.outputs.platforms }}
+      version_platforms: ${{ steps.values.outputs.version_platforms }}
+      build_matrix: ${{ steps.values.outputs.build_matrix }}
+      latest_version: ${{ steps.values.outputs.latest_version }}
+    steps:
+      - id: values
+        run: |
+          # Source of truth: "<version> <platform1,platform2,...>" per line.
+          table="$(cat <<'EOF'
+          8.5 linux/amd64,linux/arm64/v8
+          8.6 linux/amd64,linux/arm64/v8
+          8.7 linux/amd64,linux/arm64/v8
+          8.8 linux/amd64,linux/arm64/v8
+          8.9 linux/amd64,linux/arm64/v8
+          9.0 linux/amd64,linux/arm64/v8
+          9.1 linux/amd64,linux/arm64/v8,linux/ppc64le,linux/s390x
+          9.2 linux/amd64,linux/arm64/v8,linux/s390x
+          9.3 linux/amd64,linux/arm64/v8,linux/ppc64le,linux/s390x
+          9.4 linux/amd64,linux/arm64/v8,linux/s390x
+          9.5 linux/amd64,linux/arm64/v8,linux/s390x
+          9.6 linux/amd64,linux/arm64/v8,linux/s390x
+          9.7 linux/amd64,linux/arm64/v8,linux/s390x
+          10.0 linux/amd64,linux/arm64/v8,linux/ppc64le,linux/s390x
+          EOF
+          )"
+          versions="$(printf '%s\n' "$table" | awk '{print $1}' | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+          platforms="$(printf '%s\n' "$table" | awk '{print $2}' | tr ',' '\n' | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+          version_platforms="$(printf '%s\n' "$table" | jq -R -s -c 'split("\n") | map(select(length > 0)) | map(split(" ") | {version: .[0], platforms: .[1] | split(",")}) | map({(.version): .platforms}) | add')"
+          build_matrix="$(printf '%s\n' "$table" | jq -R -s -c 'split("\n") | map(select(length > 0)) | map(split(" ") | {version_branch: .[0], platform: (.[1] | split(",")[])})')"
+          latest_version="$(printf '%s\n' "$table" | awk '{print $1}' | jq -R -s -r 'split("\n") | map(select(length > 0)) | sort_by(split(".") | map(tonumber)) | last')"
+          {
+            echo "versions=$versions"
+            echo "platforms=$platforms"
+            echo "version_platforms=$version_platforms"
+            echo "build_matrix=$build_matrix"
+            echo "latest_version=$latest_version"
+          } >> "$GITHUB_OUTPUT"
