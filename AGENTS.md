@@ -21,13 +21,13 @@ and are published under different tags to Docker Hub and GHCR.
   - `test-image.yml`, `build-image.yml` — reusable workflows with shared steps.
 - `Makefile` + `scripts/test.mk` — `make test-build` smoke test mirroring
   `test-image.yml`; the version is set via the `version_branch` variable (default:
-  the latest supported version, `10.0`).
+  the latest supported version, `10.1`).
 - `.context/optimize-ci.md` — CI/CD architecture plan and rationale (read before
   changing the workflows).
 - `.gitignore` — files kept out of git (`.context`, `.omo`).
 
 ## Build and test
-- Local build: `cd rocky10 && docker build -t docker-rockylinux-ansible . --build-arg VERSION=10.0`
+- Local build: `cd rocky10 && docker build -t docker-rockylinux-ansible . --build-arg VERSION=10.1`
 - Smoke test, as in CI (`test-image.yml`):
   1. `podman build -t docker-rockylinux-ansible:<version> ./rocky<major>/. --build-arg VERSION=<version>`
   2. `podman run --name test-container --detach --privileged \
@@ -37,15 +37,15 @@ and are published under different tags to Docker Hub and GHCR.
   `make test-build version_branch=9.7`).
 
 ## CI/CD conventions
-- Version matrix (image tags): `9.0`–`9.8`, `10.0`.
+- Version matrix (image tags): `9.0`–`9.8`, `10.0`–`10.1`.
 - Each version maps to a `rocky<major-version>` directory; the image tag is the
-  full version; `10.0` is the latest and also carries the `latest` tag.
+  full version; `10.1` is the latest and also carries the `latest` tag.
 - `8.x` is archived — no longer built or published (see README, "Archive tags").
 - Platforms per version:
   - `9.0`: `linux/amd64`, `linux/arm64/v8`.
   - `9.1`, `9.3`: also `linux/ppc64le`, `linux/s390x`.
   - Other `9.x`: also `linux/s390x`.
-  - `10.0`: `linux/amd64`, `linux/arm64/v8`, `linux/ppc64le`, `linux/s390x`.
+  - `10.0`, `10.1`: `linux/amd64`, `linux/arm64/v8`, `linux/ppc64le`, `linux/s390x`.
 - Versions, platform mapping, and the `latest` tag mapping live in `config.yml`
   (outputs `versions`, `platforms`, `version_platforms`, `build_matrix`,
   `latest_version`) — edit it to change the build/test matrix; no other workflow
