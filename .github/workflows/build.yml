@@ -2,160 +2,25 @@
 name: Build
 on: workflow_dispatch
 
-env:
-  REGISTRY_IMAGE: kirillzak/docker-rockylinux-ansible
+permissions:
+  contents: read
 
 jobs:
-  test-build-branch-8:
-    name: Test build of image for branch 8
-    runs-on: ubuntu-latest
+  config:
+    uses: ./.github/workflows/config.yml
 
-    strategy: 
+  test-build:
+    name: Build ${{ matrix.version_branch }} / ${{ matrix.platform }}
+    needs: config
+    permissions:
+      contents: read
+      packages: write
+    strategy:
       fail-fast: false
-
       matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64/v8
-        version_branch: [8]
-        version_minor_release: [5, 6, 7, 8, 9]
-
-    steps:
-      - name: Checkout out the codebase
-        uses: actions/checkout@v7
-      
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY_IMAGE }}
-
-      - name: Add Qemu
-        uses: docker/setup-qemu-action@v4
-
-      - name: Add Docker BuildX
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build an image
-        uses: docker/build-push-action@v7
-        with:
-          build-args: VERSION=${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-          context: ./
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          load: true
-          labels: ${{ steps.meta.outputs.labels }}
-          file: ./rocky${{ matrix.version_branch }}/Dockerfile
-          platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},name-canonical=true
-          push: false
-          tags: |
-            kirillzak/docker-rockylinux-ansible:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-            ghcr.io/${{ github.repository }}:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-  
-  test-build-branch-9:
-    name: Test build of image for branch 9
-    runs-on: ubuntu-latest
-
-    strategy: 
-      fail-fast: false
-
-      matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64/v8
-          - linux/s390x
-        version_branch: [9]
-        version_minor_release: [0, 1, 2, 3, 4, 5, 6, 7]
-        include:
-          - version_branch: 9
-            version_minor_release: 1
-            platform: linux/ppc64le
-          - version_branch: 9
-            version_minor_release: 3
-            platform: linux/ppc64le
-        exclude:
-          - version_branch: 9
-            version_minor_release: 0
-            platform: linux/s390x
-
-    steps:
-      - name: Checkout out the codebase
-        uses: actions/checkout@v7
-      
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY_IMAGE }}
-
-      - name: Add Qemu
-        uses: docker/setup-qemu-action@v4
-
-      - name: Add Docker BuildX
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build an image
-        uses: docker/build-push-action@v7
-        with:
-          build-args: VERSION=${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-          context: ./
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          load: true
-          labels: ${{ steps.meta.outputs.labels }}
-          file: ./rocky${{ matrix.version_branch }}/Dockerfile
-          platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},name-canonical=true
-          push: false
-          tags: |
-            kirillzak/docker-rockylinux-ansible:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-            ghcr.io/${{ github.repository }}:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-
-  test-build-branch-10:
-    name: Test build of image for branch 10
-    runs-on: ubuntu-latest
-
-    strategy: 
-      fail-fast: false
-
-      matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64/v8
-          - linux/s390x
-        version_branch: [10]
-        version_minor_release: [0]
-
-    steps:
-      - name: Checkout out the codebase
-        uses: actions/checkout@v7
-      
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY_IMAGE }}
-
-      - name: Add Qemu
-        uses: docker/setup-qemu-action@v4
-
-      - name: Add Docker BuildX
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build an image
-        uses: docker/build-push-action@v7
-        with:
-          build-args: VERSION=${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-          context: ./
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          load: true
-          labels: ${{ steps.meta.outputs.labels }}
-          file: ./rocky${{ matrix.version_branch }}/Dockerfile
-          platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},name-canonical=true
-          push: false
-          tags: |
-            kirillzak/docker-rockylinux-ansible:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
-            ghcr.io/${{ github.repository }}:${{ matrix.version_branch }}.${{ matrix.version_minor_release }}
+        include: ${{ fromJSON(needs.config.outputs.build_matrix) }}
+    uses: ./.github/workflows/build-image.yml
+    with:
+      version_branch: ${{ matrix.version_branch }}
+      platforms: ${{ matrix.platform }}
+      push: false

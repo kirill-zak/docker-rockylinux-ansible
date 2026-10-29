@@ -1,7 +1,7 @@
 # Get version of Rocky Linux to build
 ARG VERSION
 # Get build platform
-ARG BUILDPLATFORM=linux/amd64
+ARG BUILDPLATFORM
 
 FROM --platform=$BUILDPLATFORM rockylinux/rockylinux:${VERSION}
 LABEL maintainer="Kirill Ziuzin"
