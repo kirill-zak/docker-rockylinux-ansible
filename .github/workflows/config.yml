@@ -37,11 +37,6 @@ jobs:
         run: |
           # Source of truth: "<version> <platform1,platform2,...>" per line.
           table="$(cat <<'EOF'
-          8.5 linux/amd64,linux/arm64/v8
-          8.6 linux/amd64,linux/arm64/v8
-          8.7 linux/amd64,linux/arm64/v8
-          8.8 linux/amd64,linux/arm64/v8
-          8.9 linux/amd64,linux/arm64/v8
           9.0 linux/amd64,linux/arm64/v8
           9.1 linux/amd64,linux/arm64/v8,linux/ppc64le,linux/s390x
           9.2 linux/amd64,linux/arm64/v8,linux/s390x
