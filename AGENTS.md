@@ -37,7 +37,7 @@ and are published under different tags to Docker Hub and GHCR.
   `make test-build version_branch=9.7`).
 
 ## CI/CD conventions
-- Version matrix (image tags): `9.0`–`9.7`, `10.0`.
+- Version matrix (image tags): `9.0`–`9.8`, `10.0`.
 - Each version maps to a `rocky<major-version>` directory; the image tag is the
   full version; `10.0` is the latest and also carries the `latest` tag.
 - `8.x` is archived — no longer built or published (see README, "Archive tags").
